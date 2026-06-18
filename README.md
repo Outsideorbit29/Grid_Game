@@ -67,23 +67,25 @@ npm run dev
 ```
 *The client will start, usually on `http://localhost:5173`.*
 
----
-
 ## 🌐 Production Deployment Guide
 
-This project is optimized for deployment on Vercel (Frontend) and Render/Railway (Backend).
+This project is optimized for deploying the **Frontend to Vercel** and the **Backend to Render**.
 
-### Step 1: Backend Deployment (Render or Railway)
-1. Set the **Root Directory** to `server`.
-2. Set the **Build Command** to `npm install && npm run build`.
-3. Set the **Start Command** to `npm start`.
-4. Set the following environment variable:
-   * `CLIENT_URL` = `https://your-frontend.vercel.app` (or `*` to allow all origins).
+### Step 1: Backend Deployment (Render)
+1. Sign in to [Render.com](https://render.com) and create a new **Web Service**.
+2. Connect your GitHub repository.
+3. Configure the following settings:
+   * **Root Directory:** `server`
+   * **Build Command:** `npm install && npm run build`
+   * **Start Command:** `npm start`
+4. Set the following environment variable under **Advanced** settings:
+   * `CLIENT_URL` = `https://grid-game-dun.vercel.app` (Your deployed Vercel URL).
 
-### Step 2: Frontend Deployment (Vercel or Netlify)
-1. Set the **Root Directory** to `client`.
-2. Set the **Build Command** to `npm run build`.
-3. Set the **Output Directory** to `dist`.
-4. Set the following environment variable:
-   * `VITE_SERVER_URL` = `https://your-backend-app.onrender.com` (Your deployed backend URL).
-5. **Important:** Trigger a **Redeploy** on Vercel if you update this variable after the first build.
+### Step 2: Frontend Deployment (Vercel)
+1. Sign in to [Vercel.com](https://vercel.com) and import your repository.
+2. Configure the following settings:
+   * **Root Directory:** `client`
+   * **Framework Preset:** `Vite`
+3. Expand **Environment Variables** and add:
+   * `VITE_SERVER_URL` = `https://your-backend-app.onrender.com` (Your deployed Render backend URL).
+4. Deploy the project. *(Note: If you add or modify environment variables in Vercel after your first deployment, go to the **Deployments** tab, click **Redeploy**, and trigger a new build for the changes to take effect).*
