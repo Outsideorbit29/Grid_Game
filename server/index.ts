@@ -6,6 +6,10 @@ import cors from 'cors';
 const app = express();
 app.use(cors());
 
+app.get('/', (req, res) => {
+  res.send('NeonGrid Server is running!');
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
