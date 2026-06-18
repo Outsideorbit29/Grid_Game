@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { MousePointer2, Users, Trophy, LogIn, Volume2, VolumeX, Eye, Flame, Shield, HelpCircle, ArrowLeft, ChevronRight } from 'lucide-react';
+import { MousePointer2, Users, Trophy, LogIn, Volume2, VolumeX, Eye, Flame, Shield, ArrowLeft, ChevronRight } from 'lucide-react';
 
 // Connect to the backend
-const SOCKET_URL = 'http://localhost:3001';
+const SOCKET_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
 type BlockData = {
   owner: string;
