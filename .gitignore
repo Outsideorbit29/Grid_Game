@@ -1,0 +1,15 @@
+# Root Gitignore
+node_modules/
+.env
+*.log
+
+# Client-specific ignores
+client/dist/
+client/node_modules/
+client/.env
+
+# Server-specific ignores
+server/node_modules/
+server/dist/
+server/.env
+server/index.js
