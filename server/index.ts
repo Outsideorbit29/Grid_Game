@@ -10,10 +10,15 @@ app.get('/', (req, res) => {
   res.send('NeonGrid Server is running!');
 });
 
+let clientUrl = process.env.CLIENT_URL || '*';
+if (clientUrl && clientUrl.endsWith('/')) {
+  clientUrl = clientUrl.slice(0, -1);
+}
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || '*',
+    origin: clientUrl,
     methods: ['GET', 'POST'],
   },
 });
