@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { MousePointer2, Users, Trophy, LogIn, Volume2, VolumeX, Eye, Flame, Shield, ArrowLeft, ChevronRight } from 'lucide-react';
+import { MousePointer2, Users, Trophy, LogIn, Volume2, VolumeX, Eye, Flame, Shield, ArrowLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 // Connect to the backend
 const SOCKET_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
@@ -51,6 +52,14 @@ export default function App() {
   const [hoveredBlock, setHoveredBlock] = useState<{ index: number; data: BlockData } | null>(null);
   const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showStats, setShowStats] = useState(true);
+  
+  useEffect(() => {
+    if (window.innerWidth < 768) {
+      setShowLeaderboard(false);
+      setShowStats(false);
+    }
+  }, []);
   
   // Cooldown State
   const [cooldownRemaining, setCooldownRemaining] = useState(0); // in ms
@@ -359,31 +368,59 @@ export default function App() {
       
       {/* Centered Board Wrapper */}
       <div className="grid-wrapper">
-        <div 
-          className="grid-container" 
-          style={{ 
-            gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
-            gridTemplateRows: `repeat(${gridRows}, 1fr)` 
-          }}
+        <TransformWrapper
+          initialScale={1}
+          minScale={0.5}
+          maxScale={6}
+          centerOnInit={true}
+          wheel={{ step: 0.1 }}
+          doubleClick={{ disabled: true }}
         >
-          {grid.map((block, index) => {
-            const isMyBlock = block?.owner === myInfo?.id;
-            return (
-              <div
-                key={index}
-                className={`block ${block ? 'claimed' : ''} ${justClaimed.has(index) ? 'just-claimed' : ''}`}
-                style={{
-                  backgroundColor: block ? block.color : undefined,
-                  boxShadow: block ? `0 0 8px ${block.color}, inset 0 0 6px rgba(255, 255, 255, 0.2)` : undefined,
-                  borderColor: isMyBlock ? '#ffffff' : undefined
-                }}
-                onClick={() => handleBlockClick(index)}
-                onMouseEnter={() => setHoveredBlock({ index, data: block })}
-                onMouseLeave={() => setHoveredBlock(null)}
-              ></div>
-            );
-          })}
-        </div>
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              <TransformComponent wrapperStyle={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div 
+                  className="grid-container" 
+                  style={{ 
+                    gridTemplateColumns: `repeat(${gridCols}, 1fr)`,
+                    gridTemplateRows: `repeat(${gridRows}, 1fr)` 
+                  }}
+                >
+                  {grid.map((block, index) => {
+                    const isMyBlock = block?.owner === myInfo?.id;
+                    return (
+                      <div
+                        key={index}
+                        className={`block ${block ? 'claimed' : ''} ${justClaimed.has(index) ? 'just-claimed' : ''}`}
+                        style={{
+                          backgroundColor: block ? block.color : undefined,
+                          boxShadow: block ? `0 0 8px ${block.color}, inset 0 0 6px rgba(255, 255, 255, 0.2)` : undefined,
+                          borderColor: isMyBlock ? '#ffffff' : undefined
+                        }}
+                        onClick={() => handleBlockClick(index)}
+                        onMouseEnter={() => setHoveredBlock({ index, data: block })}
+                        onMouseLeave={() => setHoveredBlock(null)}
+                      ></div>
+                    );
+                  })}
+                </div>
+              </TransformComponent>
+
+              {/* Floating Zoom Controls for better usability on mobile & desktop */}
+              <div className="zoom-controls glass-panel">
+                <button className="zoom-btn" onClick={() => zoomIn()} title="Zoom In">
+                  <ZoomIn size={16} />
+                </button>
+                <button className="zoom-btn" onClick={() => zoomOut()} title="Zoom Out">
+                  <ZoomOut size={16} />
+                </button>
+                <button className="zoom-btn" onClick={() => resetTransform()} title="Reset Zoom">
+                  <RotateCcw size={16} />
+                </button>
+              </div>
+            </>
+          )}
+        </TransformWrapper>
       </div>
 
       {/* Floating HUD Panels */}
@@ -422,26 +459,37 @@ export default function App() {
 
         {/* Global Live Stats Panel */}
         <div className="glass-panel stats-panel">
-          <div className="stat-row">
-            <div className="stat-label"><Users size={14} /> Online</div>
-            <div className="stat-value">{stats.onlineCount}</div>
-          </div>
-          <div className="stat-row">
-            <div className="stat-label"><Eye size={14} /> Active Players</div>
-            <div className="stat-value">{stats.activePlayersCount}</div>
-          </div>
-          {!isSpectator && (
-            <>
-              <div className="divider" />
+          <button className="leaderboard-header-toggle" onClick={() => setShowStats(!showStats)}>
+            <div className="toggle-label">
+              <Users size={14} /> Stats
+            </div>
+            <ChevronRight size={16} className={`chevron-icon ${showStats ? 'rotated' : ''}`} />
+          </button>
+
+          {showStats && (
+            <div className="stats-content animate-slide-down" style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <div className="stat-row">
-                <div className="stat-label">Your Blocks</div>
-                <div className="stat-value text-glowing" style={{ color: myInfo?.color }}>{myStats.count}</div>
+                <div className="stat-label"><Users size={14} /> Online</div>
+                <div className="stat-value">{stats.onlineCount}</div>
               </div>
               <div className="stat-row">
-                <div className="stat-label">Ownership</div>
-                <div className="stat-value">{myStats.percentage}</div>
+                <div className="stat-label"><Eye size={14} /> Active Players</div>
+                <div className="stat-value">{stats.activePlayersCount}</div>
               </div>
-            </>
+              {!isSpectator && (
+                <>
+                  <div className="divider" />
+                  <div className="stat-row">
+                    <div className="stat-label">Your Blocks</div>
+                    <div className="stat-value text-glowing" style={{ color: myInfo?.color }}>{myStats.count}</div>
+                  </div>
+                  <div className="stat-row">
+                    <div className="stat-label">Ownership</div>
+                    <div className="stat-value">{myStats.percentage}</div>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
 
